@@ -10,16 +10,24 @@ public:
   // initialize socket layer
   SendReceive() :
     mMulticastGroup("239.255.1.2", 12345), 
-    mNetworkInterface(findInterface()) 
+    mServerNetworkInterface(findInterface()) 
   {
     mMulticastServerSocket.bind(Poco::Net::SocketAddress(Poco::Net::IPAddress(), mMulticastGroup.port()), true);
-    mMulticastServerSocket.joinGroup(mMulticastGroup.host(), mNetworkInterface);
+    mMulticastServerSocket.joinGroup(mMulticastGroup.host(), mServerNetworkInterface);
+  }
+
+  SendReceive( std::string IPv4ToBinTo) :
+	  mMulticastGroup("239.255.1.2", 12345),
+	  mServerNetworkInterface(findInterface(IPv4ToBinTo))
+  {
+	  mMulticastServerSocket.bind(Poco::Net::SocketAddress(Poco::Net::IPAddress(), mMulticastGroup.port()), true);
+	  mMulticastServerSocket.joinGroup(mMulticastGroup.host(), mServerNetworkInterface);
   }
 
   // close socket layer
   ~SendReceive() 
   {
-    mMulticastServerSocket.leaveGroup(mMulticastGroup.host(), mNetworkInterface);
+    mMulticastServerSocket.leaveGroup(mMulticastGroup.host(), mServerNetworkInterface);
     mMulticastServerSocket.close();
   }
 
@@ -47,6 +55,7 @@ public:
   Poco::Net::NetworkInterface findInterface()
   {
     Poco::Net::NetworkInterface ret;
+	
     Poco::Net::NetworkInterface::Map m = Poco::Net::NetworkInterface::map();
     for (Poco::Net::NetworkInterface::Map::const_iterator it = m.begin(); it != m.end(); ++it)
     {
@@ -60,9 +69,17 @@ public:
       }
     }
     //return NetworkInterface();
-    Poco::Net::IPAddress IpA = ret.firstAddress(Poco::Net::IPAddress::Family::IPv4);
-    std::cout << "Selected interface is " << ret.displayName() << " with ip " << IpA.toString() << "\n";
+	mServerIPAdresse = ret.firstAddress(Poco::Net::IPAddress::Family::IPv4);
+    std::cout << "Selected interface is " << ret.displayName() << " with ip " << mServerIPAdresse.toString() << "\n";
     return ret;
+  }
+
+  Poco::Net::NetworkInterface findInterface(std::string ipToMatch)
+  {
+	  Poco::Net::NetworkInterface ret = Poco::Net::NetworkInterface::forAddress(Poco::Net::IPAddress( ipToMatch, Poco::Net::IPAddress::IPv4));
+	  mServerIPAdresse = ret.firstAddress(Poco::Net::IPAddress::Family::IPv4);
+	  std::cout << "Selected interface is " << ret.displayName() << " with ip " << mServerIPAdresse.toString() << "\n";
+	  return ret;
   }
 
 protected:
@@ -70,9 +87,12 @@ protected:
   std::thread mThread;
 
   Poco::Net::MulticastSocket  mMulticastServerSocket;
+  Poco::Net::IPAddress		  mServerIPAdresse;
+  Poco::Net::NetworkInterface mServerNetworkInterface;
+
   Poco::Net::MulticastSocket  mMulticastSendSocket;
   Poco::Net::SocketAddress    mMulticastGroup;
-  Poco::Net::NetworkInterface mNetworkInterface;
+  
 
   void threadRunner() {
 
@@ -89,6 +109,10 @@ protected:
           Poco::Net::SocketAddress sender;
           int n = mMulticastServerSocket.receiveFrom(buffer, sizeof(buffer), sender);
           std::cout << " Receive " << n << " bytes from " << sender.toString() << " [" << buffer << "]\n";
+		  if (sender.host().toString() == mServerIPAdresse.toString())
+		  {
+			  std::cout << "Data Received from ourself discard it!\n";
+		  }
           /*buffer[n - 1] = 'E';
           buffer[n] = 'C';
           buffer[n + 1] = 0;
@@ -107,19 +131,32 @@ protected:
 
 };
 
-int main()
+int main( int argc, char* argv[])
 {
 
   bool goOn = true;
   char key;
 
+  std::cout << "argc is " << argc << "\n";
+  for (int i = 0; i < argc; i++)
+  {
+	  std::cout << "arg " << i << " = " << argv[i] << "\n";
+  }
+
   std::cout << "\nSendReceive Multicast\n";
+  std::cout << "\ncall parameters : " << argv[0] << " ip_to_bind_to\n";
   std::cout << "\nType key then enter to run commande.\n";
   std::cout << "Commandes :\n\tq : quit\n\ts : send\n\n";
 
+  if (argc < 2)
+  {
+	  std::cout << "Error : ip to bind to is missing in the call arguments\n";
+	  exit(-1);
+  }
+
   try
   {
-    SendReceive SndRcv;
+    SendReceive SndRcv(argv[1]);
 
     SndRcv.startThread();
 
