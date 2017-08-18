@@ -27,12 +27,21 @@
     <ClInclude Include="SendReceive.hpp">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="proto.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imp.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SendReceiveTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="testBusSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

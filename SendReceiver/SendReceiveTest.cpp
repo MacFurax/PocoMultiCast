@@ -4,11 +4,11 @@
 #include "stdafx.h"
 
 
-class SendReceive {
+class MulticastBusTransport {
 public:
 
   // initialize socket layer
-  SendReceive() :
+  MulticastBusTransport() :
     mMulticastGroup("239.255.1.2", 12345), 
     mServerNetworkInterface(findInterface()) 
   {
@@ -16,7 +16,7 @@ public:
     mMulticastServerSocket.joinGroup(mMulticastGroup.host(), mServerNetworkInterface);
   }
 
-  SendReceive( std::string IPv4ToBinTo) :
+  MulticastBusTransport( std::string IPv4ToBinTo) :
 	  mMulticastGroup("239.255.1.2", 12345),
 	  mServerNetworkInterface(findInterface(IPv4ToBinTo))
   {
@@ -25,7 +25,7 @@ public:
   }
 
   // close socket layer
-  ~SendReceive() 
+  ~MulticastBusTransport() 
   {
     mMulticastServerSocket.leaveGroup(mMulticastGroup.host(), mServerNetworkInterface);
     mMulticastServerSocket.close();
@@ -35,7 +35,7 @@ public:
   void startThread() 
   {
     mIsStartedThread.store(true);
-    mThread = std::thread(&SendReceive::threadRunner, this);
+    mThread = std::thread(&MulticastBusTransport::threadRunner, this);
   }
 
   // stop receiving thread 
@@ -45,7 +45,7 @@ public:
     mThread.join();
   }
 
-  void send(void* buffer, int bufferSize)
+  void send(const void* buffer, int bufferSize)
   {
     std::cout << "Sending data\n";
     mMulticastSendSocket.sendTo(buffer, bufferSize, mMulticastGroup);
@@ -131,7 +131,7 @@ protected:
 
 };
 
-int main( int argc, char* argv[])
+int no_more_main( int argc, char* argv[])
 {
 
   bool goOn = true;
@@ -156,7 +156,7 @@ int main( int argc, char* argv[])
 
   try
   {
-    SendReceive SndRcv(argv[1]);
+    MulticastBusTransport SndRcv(argv[1]);
 
     SndRcv.startThread();
 
