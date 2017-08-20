@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="imp.hpp" />
     <ClInclude Include="proto.hpp" />
+    <ClInclude Include="proto2.hpp" />
     <ClInclude Include="SendReceive.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />

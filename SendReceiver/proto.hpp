@@ -161,8 +161,8 @@ public:
     mRun = false;
   }
 
-  void SetBus(std::shared_ptr<Bus> bus) { mBus = bus; }
-  void SetNode(std::shared_ptr<Node> node) { mNode = node; }
+  void ConnectBus(std::shared_ptr<Bus> bus) { mBus = bus; }
+  void ConnectNode(std::shared_ptr<Node> node) { mNode = node; }
   void AddService(std::shared_ptr<Service> service) { mServices.push_back(service); }
 
   void virtual callback() {}
